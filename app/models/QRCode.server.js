@@ -2,7 +2,6 @@ import qrcode from "qrcode";
 import invariant from "tiny-invariant";
 import db from "../db.server";
 
-// [START get-qrcode]
 export async function getQRCode(id, graphql) {
   const qrCode = await db.qRCode.findFirst({ where: { id } });
 
@@ -25,16 +24,16 @@ export async function getQRCodes(shop, graphql) {
     qrCodes.map((qrCode) => supplementQRCode(qrCode, graphql))
   );
 }
-// [END get-qrcode]
 
-// [START get-qrcode-image]
-export function getQRCodeImage(id) {
+export function getQRCodeImage(id, darkColor) {
+  const color = {
+    dark: `${darkColor + 'FF'}`,
+    light: "#FFF"
+  }
   const url = new URL(`/qrcodes/${id}/scan`, process.env.SHOPIFY_APP_URL);
-  return qrcode.toDataURL(url.href);
+  return qrcode.toDataURL(url.href, {color});
 }
-// [END get-qrcode-image]
 
-// [START get-destination]
 export function getDestinationUrl(qrCode) {
   if (qrCode.destination === "product") {
     return `https://${qrCode.shop}/products/${qrCode.productHandle}`;
@@ -45,11 +44,9 @@ export function getDestinationUrl(qrCode) {
 
   return `https://${qrCode.shop}/cart/${match[1]}:1`;
 }
-// [END get-destination]
 
-// [START hydrate-qrcode]
 async function supplementQRCode(qrCode, graphql) {
-  const qrCodeImagePromise = getQRCodeImage(qrCode.id);
+  const qrCodeImagePromise = getQRCodeImage(qrCode.id, qrCode.color);
 
   const response = await graphql(
     `
@@ -86,9 +83,7 @@ async function supplementQRCode(qrCode, graphql) {
     image: await qrCodeImagePromise,
   };
 }
-// [END hydrate-qrcode]
 
-// [START validate-qrcode]
 export function validateQRCode(data) {
   const errors = {};
 
@@ -108,4 +103,3 @@ export function validateQRCode(data) {
     return errors;
   }
 }
-// [END validate-qrcode]

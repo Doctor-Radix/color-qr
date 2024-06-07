@@ -25,6 +25,8 @@ model Session {
 model QRCode {
   id               Int      @id @default(autoincrement())
   title            String
+  description      String
+  color            String
   shop             String
   productId        String
   productHandle    String

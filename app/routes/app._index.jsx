@@ -16,28 +16,25 @@ import {
 import { getQRCodes } from "../models/QRCode.server";
 import { AlertDiamondIcon, ImageIcon } from "@shopify/polaris-icons";
 
-// [START loader]
 export async function loader({ request }) {
   const { admin, session } = await authenticate.admin(request);
   const qrCodes = await getQRCodes(session.shop, admin.graphql);
-
   return json({
     qrCodes,
   });
 }
-// [END loader]
 
 // [START empty]
 const EmptyQRCodeState = ({ onAction }) => (
   <EmptyState
-    heading="Create unique QR codes for your product"
+    heading="Generate a colorful QR code in seconds"
     action={{
-      content: "Create QR code",
+      content: "Generate a QR Code",
       onAction,
     }}
     image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
   >
-    <p>Allow customers to scan codes and buy products using their phones.</p>
+    <p>We’ll create a QR code for your customers</p>
   </EmptyState>
 );
 // [END empty]
@@ -59,6 +56,7 @@ const QRTable = ({ qrCodes }) => (
     headings={[
       { title: "Thumbnail", hidden: true },
       { title: "Title" },
+      { title: "Description" },
       { title: "Product" },
       { title: "Date created" },
       { title: "Scans" },
@@ -84,6 +82,9 @@ const QRTableRow = ({ qrCode }) => (
     </IndexTable.Cell>
     <IndexTable.Cell>
       <Link to={`qrcodes/${qrCode.id}`}>{truncate(qrCode.title)}</Link>
+    </IndexTable.Cell>
+    <IndexTable.Cell>
+      {qrCode.description || '-'}
     </IndexTable.Cell>
     <IndexTable.Cell>
       {/* [START deleted] */}
@@ -118,7 +119,7 @@ export default function Index() {
     <Page>
       <ui-title-bar title="QR codes">
         <button variant="primary" onClick={() => navigate("/app/qrcodes/new")}>
-          Create QR code
+          Generate a QR Code
         </button>
       </ui-title-bar>
       <Layout>

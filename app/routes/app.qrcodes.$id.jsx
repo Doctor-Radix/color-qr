@@ -23,19 +23,19 @@ import {
   TextField,
   Thumbnail,
   BlockStack,
-  PageActions,
+  PageActions
 } from "@shopify/polaris";
 import { ImageIcon } from "@shopify/polaris-icons";
+import ColorPickerComponent from '../components/ColorPickerComponent';
 
 import db from "../db.server";
 import { getQRCode, validateQRCode } from "../models/QRCode.server";
+import { hsbToHex } from "~/utils/colorUtils";
+import { colorPickerDefaultColor } from "~/constants";
 
-export async function loader({ request, params }) {
-  // [START authenticate]
-  const { admin } = await authenticate.admin(request);
-  // [END authenticate]
+export async function loader({request, params}) {
+  const {admin} = await authenticate.admin(request);
 
-  // [START data]
   if (params.id === "new") {
     return json({
       destination: "product",
@@ -48,9 +48,9 @@ export async function loader({ request, params }) {
 }
 
 // [START action]
-export async function action({ request, params }) {
-  const { session } = await authenticate.admin(request);
-  const { shop } = session;
+export async function action({request, params}) {
+  const {session} = await authenticate.admin(request);
+  const {shop} = session;
 
   /** @type {any} */
   const data = {
@@ -59,29 +59,29 @@ export async function action({ request, params }) {
   };
 
   if (data.action === "delete") {
-    await db.qRCode.delete({ where: { id: Number(params.id) } });
+    await db.qRCode.delete({where: {id: Number(params.id)}});
     return redirect("/app");
   }
 
   const errors = validateQRCode(data);
 
   if (errors) {
-    return json({ errors }, { status: 422 });
+    return json({errors}, {status: 422});
   }
 
   const qrCode =
     params.id === "new"
-      ? await db.qRCode.create({ data })
-      : await db.qRCode.update({ where: { id: Number(params.id) }, data });
+      ? await db.qRCode.create({data})
+      : await db.qRCode.update({where: {id: Number(params.id)}, data});
 
   return redirect(`/app/qrcodes/${qrCode.id}`);
 }
+
 // [END action]
 
 // [START state]
 export default function QRCodeForm() {
   const errors = useActionData()?.errors || {};
-
   const qrCode = useLoaderData();
   const [formState, setFormState] = useState(qrCode);
   const [cleanFormState, setCleanFormState] = useState(qrCode);
@@ -95,6 +95,10 @@ export default function QRCodeForm() {
   // [END state]
 
   const navigate = useNavigate();
+  const handleColorChange = (hsbColor) => {
+    const hexColor = hsbToHex(hsbColor);
+    setFormState({...formState, color: hexColor});
+  };
 
   // [START select-product]
   async function selectProduct() {
@@ -104,7 +108,7 @@ export default function QRCodeForm() {
     });
 
     if (products) {
-      const { images, id, variants, title, handle } = products[0];
+      const {images, id, variants, title, handle} = products[0];
 
       setFormState({
         ...formState,
@@ -117,22 +121,27 @@ export default function QRCodeForm() {
       });
     }
   }
+
   // [END select-product]
 
   // [START save]
   const submit = useSubmit();
+
   function handleSave() {
     const data = {
       title: formState.title,
+      description: formState.description || "",
       productId: formState.productId || "",
       productVariantId: formState.productVariantId || "",
       productHandle: formState.productHandle || "",
       destination: formState.destination,
+      color: formState.color
     };
 
-    setCleanFormState({ ...formState });
-    submit(data, { method: "post" });
+    setCleanFormState({...formState});
+    submit(data, {method: "post"});
   }
+
   // [END save]
 
   // [START polaris]
@@ -155,18 +164,55 @@ export default function QRCodeForm() {
                   Title
                 </Text>
                 <TextField
-                  id="title"
-                  helpText="Only store staff can see this title"
-                  label="title"
+                  id="title" label="title"
                   labelHidden
                   autoComplete="off"
                   value={formState.title}
-                  onChange={(title) => setFormState({ ...formState, title })}
+                  onChange={(title) => setFormState({...formState, title})}
                   error={errors.title}
                 />
               </BlockStack>
             </Card>
             {/* [END title] */}
+
+            <Card>
+              <BlockStack gap="500">
+                <Text as={"h2"} variant="headingLg">
+                  Description
+                </Text>
+                <TextField
+                  maxLength={80}
+                  id="description"
+                  helpText="Only store staff can see this description"
+                  label="description"
+                  labelHidden
+                  autoComplete="off"
+                  value={formState.description}
+                  onChange={(description) => setFormState({...formState, description})}
+                />
+              </BlockStack>
+            </Card>
+
+            <Card>
+              <BlockStack gap="500">
+                <Text as={"h2"} variant="headingLg">
+                  Pick the QR code color
+                </Text>
+                <ColorPickerComponent
+                  color={formState.color || colorPickerDefaultColor}
+                  onColorChange={handleColorChange}/>
+                <div
+                  style={{
+                    marginTop: '20px',
+                    padding: '20px',
+                    backgroundColor: formState.color || colorPickerDefaultColor,
+                    border: '1px solid #000',
+                    borderRadius: '4px',
+                  }}
+                ></div>
+              </BlockStack>
+            </Card>
+
             <Card>
               <BlockStack gap="500">
                 {/* [START product] */}
@@ -205,14 +251,14 @@ export default function QRCodeForm() {
                 )}
                 {/* [END product] */}
                 <Bleed marginInlineStart="200" marginInlineEnd="200">
-                  <Divider />
+                  <Divider/>
                 </Bleed>
                 {/* [START destination] */}
                 <InlineStack gap="500" align="space-between" blockAlign="start">
                   <ChoiceList
                     title="Scan destination"
                     choices={[
-                      { label: "Link to product page", value: "product" },
+                      {label: "Link to product page", value: "product"},
                       {
                         label: "Link to checkout page with product in the cart",
                         value: "cart",
@@ -249,7 +295,7 @@ export default function QRCodeForm() {
               QR code
             </Text>
             {qrCode ? (
-              <EmptyState image={qrCode.image} imageContained={true} />
+              <EmptyState image={qrCode.image} imageContained={true}/>
             ) : (
               <EmptyState image="">
                 Your QR code will appear here after you save
@@ -286,11 +332,11 @@ export default function QRCodeForm() {
                 destructive: true,
                 outline: true,
                 onAction: () =>
-                  submit({ action: "delete" }, { method: "post" }),
+                  submit({action: "delete"}, {method: "post"}),
               },
             ]}
             primaryAction={{
-              content: "Save",
+              content: qrCode.id ? "Edit & Save " : "Create",
               loading: isSaving,
               disabled: !isDirty || isSaving || isDeleting,
               onAction: handleSave,

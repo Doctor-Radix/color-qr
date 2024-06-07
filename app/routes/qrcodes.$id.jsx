@@ -16,7 +16,7 @@ export const loader = async ({ params }) => {
 
   return json({
     title: qrCode.title,
-    image: await getQRCodeImage(id),
+    image: await getQRCodeImage(id, qrCode.color),
   });
 };
 // [END loader]
