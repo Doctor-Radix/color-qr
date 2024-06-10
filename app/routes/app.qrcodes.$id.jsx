@@ -178,10 +178,10 @@ export default function QRCodeForm() {
             <Card>
               <BlockStack gap="500">
                 <Text as={"h2"} variant="headingLg">
-                  Description
+                  Description (optional)
                 </Text>
                 <TextField
-                  maxLength={80}
+                  maxLength={30}
                   id="description"
                   helpText="Only store staff can see this description"
                   label="description"

@@ -16,8 +16,8 @@ import {
 import { getQRCodes } from "../models/QRCode.server";
 import { AlertDiamondIcon, ImageIcon } from "@shopify/polaris-icons";
 
-export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+export async function loader({request}) {
+  const {admin, session} = await authenticate.admin(request);
   const qrCodes = await getQRCodes(session.shop, admin.graphql);
   return json({
     qrCodes,
@@ -25,7 +25,7 @@ export async function loader({ request }) {
 }
 
 // [START empty]
-const EmptyQRCodeState = ({ onAction }) => (
+const EmptyQRCodeState = ({onAction}) => (
   <EmptyState
     heading="Generate a colorful QR code in seconds"
     action={{
@@ -37,16 +37,17 @@ const EmptyQRCodeState = ({ onAction }) => (
     <p>We’ll create a QR code for your customers</p>
   </EmptyState>
 );
+
 // [END empty]
 
-function truncate(str, { length = 25 } = {}) {
+function truncate(str, {length = 25} = {}) {
   if (!str) return "";
   if (str.length <= length) return str;
   return str.slice(0, length) + "…";
 }
 
 // [START table]
-const QRTable = ({ qrCodes }) => (
+const QRTable = ({qrCodes}) => (
   <IndexTable
     resourceName={{
       singular: "QR code",
@@ -54,24 +55,25 @@ const QRTable = ({ qrCodes }) => (
     }}
     itemCount={qrCodes.length}
     headings={[
-      { title: "Thumbnail", hidden: true },
-      { title: "Title" },
-      { title: "Description" },
-      { title: "Product" },
-      { title: "Date created" },
-      { title: "Scans" },
+      {title: "Thumbnail", hidden: true},
+      {title: "Title"},
+      {title: "Description"},
+      {title: "Product"},
+      {title: "Date created", alignment: 'end'},
+      {title: "Scans", alignment: 'end'},
+      {title: "Color"},
     ]}
     selectable={false}
   >
     {qrCodes.map((qrCode) => (
-      <QRTableRow key={qrCode.id} qrCode={qrCode} />
+      <QRTableRow key={qrCode.id} qrCode={qrCode}/>
     ))}
   </IndexTable>
 );
 // [END table]
 
 // [START row]
-const QRTableRow = ({ qrCode }) => (
+const QRTableRow = ({qrCode}) => (
   <IndexTable.Row id={qrCode.id} position={qrCode.id}>
     <IndexTable.Cell>
       <Thumbnail
@@ -90,8 +92,8 @@ const QRTableRow = ({ qrCode }) => (
       {/* [START deleted] */}
       {qrCode.productDeleted ? (
         <InlineStack align="start" gap="200">
-          <span style={{ width: "20px" }}>
-            <Icon source={AlertDiamondIcon} tone="critical" />
+          <span style={{width: "20px"}}>
+            <Icon source={AlertDiamondIcon} tone="critical"/>
           </span>
           <Text tone="critical" as="span">
             product has been deleted
@@ -103,15 +105,25 @@ const QRTableRow = ({ qrCode }) => (
       {/* [END deleted] */}
     </IndexTable.Cell>
     <IndexTable.Cell>
-      {new Date(qrCode.createdAt).toDateString()}
+      <Text as="span" alignment="end">
+        {new Date(qrCode.createdAt).toDateString()}
+      </Text>
     </IndexTable.Cell>
-    <IndexTable.Cell>{qrCode.scans}</IndexTable.Cell>
+    <IndexTable.Cell>
+      <Text as="span" alignment="end">
+        {qrCode.scans}
+      </Text>
+    </IndexTable.Cell>
+    <IndexTable.Cell>
+      <div className={'center-row-spacer'}
+           style={{background: qrCode.color, width: '20px', height: '20px'}}></div>
+    </IndexTable.Cell>
   </IndexTable.Row>
 );
 // [END row]
 
 export default function Index() {
-  const { qrCodes } = useLoaderData();
+  const {qrCodes} = useLoaderData();
   const navigate = useNavigate();
 
   // [START page]
@@ -126,9 +138,9 @@ export default function Index() {
         <Layout.Section>
           <Card padding="0">
             {qrCodes.length === 0 ? (
-              <EmptyQRCodeState onAction={() => navigate("qrcodes/new")} />
+              <EmptyQRCodeState onAction={() => navigate("qrcodes/new")}/>
             ) : (
-              <QRTable qrCodes={qrCodes} />
+              <QRTable qrCodes={qrCodes}/>
             )}
           </Card>
         </Layout.Section>

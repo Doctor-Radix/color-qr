@@ -22,12 +22,12 @@ export async function loader({request}) {
   if (activeSubscriptions.length < 1) {
     await billing.require({
       plans: [ONE_TIME_PAYMENT],
-      isTest: true,
+      isTest: false,
       onFailure: async () =>
         billing.request({
           plan: ONE_TIME_PAYMENT,
           isTest: false,
-          returnUrl: `https://${shop}/admin/apps/color-qr/app`
+          returnUrl: `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`
         }),
     })
   }
